@@ -1,0 +1,107 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id                 Int                 @id @default(autoincrement())
+  full_name          String              @db.VarChar(100)
+  email              String              @unique @db.VarChar(100)
+  password_hash      String              @db.VarChar(255)
+  total_points       Int                 @default(0)
+  created_at         DateTime            @default(now()) @db.Timestamp(6)
+  reset_code         String?             @db.VarChar(10)
+  reset_code_expiry  DateTime?           @db.Timestamp(6)
+  last_active        DateTime            @default(now()) @db.Timestamp(6)
+  current_level      Int                 @default(1)
+  solved_count       Int                 @default(0)
+  profile_image      String?             @db.Text
+  help_points        Int                 @default(1)
+  is_suspended       Boolean             @default(false)
+  total_points_spent Int                 @default(0)
+  
+  progress           UserProgress[]
+  submissions        StudentSubmission[]
+
+  @@map("users")
+}
+
+model Algorithm {
+  id             Int      @id @default(autoincrement())
+  level          String   @db.VarChar(20)
+  algo_id        String   @unique @db.VarChar(50)
+  title          String   @db.VarChar(100)
+  description    String?  @db.Text
+  icon           String?  @db.VarChar(50)
+  payload        Json
+  created_at     DateTime @default(now()) @db.Timestamp(6)
+  visual_pattern String?  @default("array") @db.VarChar(50)
+
+  @@map("algorithms")
+}
+
+model AutoReport {
+  id          Int      @id @default(autoincrement())
+  report_type String   @db.VarChar(20)
+  report_date DateTime @default(now()) @db.Timestamp(6)
+  stats       Json
+
+  @@map("auto_reports")
+}
+
+model Competition {
+  id              Int      @id @default(autoincrement())
+  title           String   @db.VarChar(255)
+  description     String?  @db.Text
+  status          String?  @default("upcoming") @db.VarChar(50)
+  icon            String?  @default("fa-trophy") @db.VarChar(50)
+  color           String?  @default("#3b82f6") @db.VarChar(20)
+  level_required  Int?     @default(1)
+  start_date      DateTime? @db.Timestamp(6)
+  end_date        DateTime? @db.Timestamp(6)
+  enrolled_count  Int?     @default(0)
+  created_at      DateTime @default(now()) @db.Timestamp(6)
+  questions       Json?    @default("[]")
+  coding_problems Json?    @default("[]")
+  time_limit      Int?     @default(60)
+  max_points      Int?     @default(500)
+
+  submissions     StudentSubmission[]
+
+  @@map("competitions")
+}
+
+model UserProgress {
+  id           Int      @id @default(autoincrement())
+  user_id      Int
+  level_id     String   @db.VarChar(20)
+  algo_id      String   @db.VarChar(50)
+  status       String?  @default("locked") @db.VarChar(20)
+  is_completed Boolean? @default(false)
+  time_spent   Int?     @default(0)
+
+  user         User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, level_id, algo_id])
+  @@map("user_progress")
+}
+
+model StudentSubmission {
+  id             Int          @id @default(autoincrement())
+  user_id        Int
+  algo_id        String       @db.VarChar(50)
+  competition_id Int?
+  submitted_code String       @db.Text
+  status         String?      @default("pending") @db.VarChar(20)
+  admin_feedback String?      @db.Text
+  execution_time Int?         @default(0)
+  submitted_at   DateTime     @default(now()) @db.Timestamp(6)
+
+  user           User         @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  competition    Competition? @relation(fields: [competition_id], references: [id], onDelete: SetNull)
+
+  @@map("student_submissions")
+}

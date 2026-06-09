@@ -1,0 +1,218 @@
+/* --- Page Header --- */
+.page-header .container {
+    padding-top: 120px;
+    padding-bottom: 60px;
+    text-align: center;
+
+}
+
+.page-header h1 {
+    font-size: 3.5rem;
+    font-weight: 800;
+    margin-bottom: 20px;
+}
+
+/* --- Roadmap Container & Line --- */
+.roadmap-section {
+    padding-bottom: 100px;
+}
+
+.roadmap-container {
+    position: relative;
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 40px 0;
+}
+
+/* الخط الرأسي الرئيسي */
+.roadmap-line {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: var(--border-light);
+    z-index: 0;
+    border-radius: 10px;
+    /* تدرج لوني يتبع المستويات */
+    background: linear-gradient(to bottom, 
+        var(--primary) 0%, 
+        #22d3ee 30%,  /* Cyan for Beginner */
+        #a855f7 60%,  /* Purple for Intermediate */
+        #ec4899 100%  /* Pink for Advanced */
+    );
+    box-shadow: 0 0 15px var(--primary-glow);
+}
+
+/* --- Level Titles --- */
+.level-block {
+    margin-bottom: 60px;
+    position: relative;
+    z-index: 2;
+}
+
+.level-title {
+    text-align: center;
+    margin-bottom: 40px;
+    font-size: 1.8rem;
+    color: var(--text-main);
+    background: var(--bg-body); /* لإخفاء الخط خلف العنوان */
+    display: inline-block;
+    padding: 10px 20px;
+    border-radius: 12px;
+    position: relative;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 1px solid var(--border-light);
+}
+
+/* --- Roadmap Items (The Modules) --- */
+.roadmap-item {
+    display: flex;
+    justify-content: flex-end; /* العناصر الافتراضية على اليسار */
+    padding-right: 50%; /* تأخذ نصف المساحة */
+    position: relative;
+    margin-bottom: 60px;
+    width: 100%;
+}
+
+/* العناصر التي على اليمين */
+.roadmap-item.right {
+    justify-content: flex-start;
+    padding-right: 0;
+    padding-left: 50%;
+}
+
+/* النقطة المتوهجة (Marker) */
+.roadmap-marker {
+    position: absolute;
+    right: -12px; /* نصف عرض النقطة */
+    top: 20px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--bg-body);
+    border: 4px solid var(--primary);
+    box-shadow: 0 0 10px var(--primary), 0 0 20px var(--primary-glow);
+    z-index: 2;
+    transition: all 0.3s ease;
+}
+
+.roadmap-item.right .roadmap-marker {
+    right: auto;
+    left: -12px;
+}
+
+/* تأثير عند التحويم على النقطة */
+.roadmap-item:hover .roadmap-marker {
+    transform: scale(1.3);
+    box-shadow: 0 0 15px var(--primary), 0 0 30px var(--primary-glow);
+}
+
+/* --- The Content Card --- */
+a{
+    text-decoration: none;
+    color: var(--text-main);
+}
+.glass-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--border-light);
+    padding: 25px;
+    border-radius: 16px;
+    width: 90%;
+    max-width: 450px;
+    margin-right: 40px; /* مسافة عن الخط */
+    position: relative;
+    transition: all 0.4s ease;
+}
+
+.roadmap-item.right .glass-card {
+    margin-right: 0;
+    margin-left: 40px;
+}
+
+.glass-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--primary-glow);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+}
+
+/* Card Header & Status */
+.content-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 15px;
+}
+
+.content-header h3 {
+    font-size: 1.2rem;
+    margin: 0;
+}
+
+.status-badge {
+    font-size: 0.75rem;
+    padding: 4px 10px;
+    border-radius: 20px;
+    background: rgba(34, 197, 94, 0.2); /* Green for completed */
+    color: #22c55e;
+    font-weight: 600;
+}
+
+.status-badge.pending {
+    background: rgba(234, 179, 8, 0.2); /* Yellow for pending */
+    color: #eab308;
+}
+
+/* --- Tags (Game vs Code) --- */
+.module-tags {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+}
+
+.tag {
+    font-size: 0.8rem;
+    padding: 6px 12px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 500;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border-light);
+}
+
+.tag-game i { color: #a855f7; } /* Purple for games */
+.tag-code i { color: #22d3ee; } /* Cyan for code */
+.tag-visual i { color: #ec4899; } /* Pink for visuals */
+
+/* --- States: Next Up & Locked --- */
+.glass-card.next-up {
+    border-color: var(--primary);
+    box-shadow: 0 0 20px var(--primary-glow);
+    animation: float 4s ease-in-out infinite;
+}
+
+.glass-card.locked {
+    opacity: 0.6;
+    filter: grayscale(0.5);
+    cursor: not-allowed;
+}
+
+.lock-icon {
+    color: var(--text-muted);
+    font-size: 1.2rem;
+}
+
+/* --- Level Specific Colors (Overrides) --- */
+/* Beginner (Cyan) */
+.beginner-level .roadmap-marker { border-color: #22d3ee; box-shadow: 0 0 10px #22d3ee; }
+/* Intermediate (Purple) */
+.intermediate-level .roadmap-marker { border-color: rgba(243, 153, 69, 0.15); box-shadow: 0 0 10px #a855f7; }
+/* Advanced (Pink) */
+.advanced-level .roadmap-marker { border-color: #ec4899; box-shadow: 0 0 10px #ec4899; }
+.locked-link { pointer-events: none; cursor: default; }
