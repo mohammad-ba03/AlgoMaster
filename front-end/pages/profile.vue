@@ -46,12 +46,10 @@ const fetchProfileData = async () => {
 const triggerFileInput = () => {
     fileInput.value.click()
 }
-
-// معالجة رفع الصورة وتحويلها لـ Base64 لرفعها مباشرة للـ DB
 const onFileChange = (e) => {
     const file = e.target.files[0]
     if (file) {
-        if (file.size > 2 * 1024 * 1024) { // التحقق من الحجم (أقل من 2 ميجابايت مثلاً)
+        if (file.size > 2 * 1024 * 1024) { 
             statusMessage.value = { text: 'Image size should be less than 2MB', type: 'error' }
             setTimeout(() => statusMessage.value.text = '', 3000)
             return

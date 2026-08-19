@@ -9,17 +9,14 @@
 <script setup>
 import { onMounted } from 'vue'
 
-const tokenCookie = useCookie('token'); // تأكد من استخدام نفس اسم الكوكي الخاص بالطالب
+const tokenCookie = useCookie('token');
 
 onMounted(() => {
-    // نتحقق أولاً أن المستخدم مسجل دخوله ولديه توكن
     if (tokenCookie.value) {
-        // نرسل الطلب في الخلفية بصمت (بدون await لكي لا نؤخر تحميل الصفحة)
         $fetch('http://localhost:5000/api/user/ping', {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${tokenCookie.value}` }
         }).catch(err => {
-            // نتجاهل الخطأ بصمت إذا فشل الاتصال، فهذا مجرد متتبع نشاط
             console.log("Activity tracking skipped");
         });
     }

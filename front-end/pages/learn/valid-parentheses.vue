@@ -53,6 +53,21 @@ const stopTimer = () => {
         timerInterval = null
     }
 }
+const showQuizModal = ref(false);
+const quizEarnedPoints = ref(0);
+
+const handleUnlockPractice = () => {
+    // حساب النقاط بناءً على الإجابات الصحيحة
+    quizEarnedPoints.value = correctQuizCount * 10;
+    // إظهار النافذة المنبثقة
+    showQuizModal.value = true;
+};
+
+const proceedToPractice = () => {
+    // إخفاء النافذة والانتقال للقسم التالي
+    showQuizModal.value = false;
+    nextStep(2);
+};
 
 // تنظيف المؤقت عند الخروج من الصفحة فجأة
 onUnmounted(() => { stopTimer() })
@@ -138,7 +153,6 @@ async function loadGlobalScore() {
             if(answeredCount === totalQuizQuestions) { 
                 const btnNext = document.getElementById('btn-to-practice');
                 btnNext.disabled = false;
-                btnNext.innerText = `Unlock Practice (+${correctQuizCount*10} pts)`;
             }
         }
 
@@ -486,6 +500,11 @@ async function saveAndExit() {
     opacity: 0;
     top: -50px;
 }
+/* تنسيق لجعل خلفية النافذة واضحة وبدون ضبابية */
+.clear-overlay {
+    background: rgba(0, 0, 0, 0.3) !important; 
+    backdrop-filter: none !important; 
+}
     </style>
 
 <template>
@@ -563,7 +582,7 @@ async function saveAndExit() {
 
                 <div id="quiz-status" style="margin-top:20px; text-align:right;">
                     <span id="quiz-progress-text" style="margin-right: 15px; color: var(--text-muted);">0/4 Correct</span>
-                    <button class="btn-primary" id="btn-to-practice" disabled @click="nextStep(2)" style="border: none; cursor: pointer;">Go to Code Practice</button>
+                    <button class="btn-primary" id="btn-to-practice" disabled @click="handleUnlockPractice()" style="border: none; cursor: pointer;">Next-></button>
                 </div>
             </div>
         </div>
@@ -649,6 +668,23 @@ async function saveAndExit() {
             <button class="btn-primary" style="width: 100%; border: none; cursor: pointer;" @click="saveAndExit()">Start Next Algorithm<i class="fas fa-arrow-right"></i></button>
         </div>
     </div> 
+        <!-- نافذة عرض نقاط الكويز -->
+<div class="modal-overlay clear-overlay" :style="{ display: showQuizModal ? 'flex' : 'none' }">
+    <div class="modal-content" style="max-width: 400px; padding: 30px;">
+        <i class="fas fa-check-circle fa-3x" style="color: #22c55e; margin-bottom: 15px; filter: drop-shadow(0 0 10px rgba(34,197,94,0.4));"></i>
+        <div class="modal-header gradient-text" style="font-size: 1.5rem;">Great effort! </div>
+        <p>Here are the points you earned.</p>
+        
+        <div class="score-circle" style="width: 80px; height: 80px; font-size: 1.5rem; margin: 15px auto;">
+            +{{ quizEarnedPoints }}
+        </div>
+        <p style="color: var(--text-muted); margin-bottom: 25px;">Points Earned</p>
+
+        <button class="btn-primary" style="width: 100%; border: none; cursor: pointer;" @click="proceedToPractice()">
+            Keep Going!
+        </button>
+    </div>
+</div>
     <transition name="slide-down">
     <div v-if="showToast" class="toast-notification">
         <i class="fas fa-star toast-icon"></i>

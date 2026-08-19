@@ -5,7 +5,6 @@ require('dotenv').config();
 
 const connectionString = process.env.DATABASE_URL;
 
-// إعداد الاتصال عبر محول pg
 const pool = new Pool({ connectionString });
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });

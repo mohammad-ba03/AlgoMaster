@@ -4,6 +4,7 @@ const verifyToken = require('../../middleware/verifyToken');
 const isAdmin = require('./adminMiddleware');
 const router = express.Router();
 
+// جلب جميع المسابقات
 router.get('/', async (req, res) => {
     try {
         const competitions = await prisma.$queryRaw`
@@ -20,6 +21,7 @@ router.get('/', async (req, res) => {
     }
 });
 
+// إضافة مسابقة جديدة
 router.post('/', verifyToken, isAdmin, async (req, res) => {
     try {
         const data = req.body;
@@ -39,14 +41,39 @@ router.post('/', verifyToken, isAdmin, async (req, res) => {
             coding_problems: data.coding_problems || []
         };
 
-        const result = await prisma.competition.create({ 
-            data: formattedData 
+        const result = await prisma.competition.create({
+            data: formattedData
         });
         
         res.json(result);
     } catch (err) {
         console.error("Error adding competition:", err.message);
         res.status(500).json({ error: 'Server error adding competition' });
+    }
+});
+
+// ========================================================
+// مسار حذف مسابقة: DELETE /api/admin/competitions/:id
+// ========================================================
+router.delete('/:id', verifyToken, isAdmin, async (req, res) => {
+    try {
+        const compId = parseInt(req.params.id, 10);
+
+        if (isNaN(compId)) {
+            return res.status(400).json({ error: 'Invalid competition ID.' });
+        }
+
+        const deletedComp = await prisma.competition.delete({
+            where: { id: compId }
+        });
+
+        res.status(200).json({ 
+            message: 'Competition deleted successfully!', 
+            deletedComp 
+        });
+    } catch (error) {
+        console.error('Error deleting competition:', error);
+        res.status(500).json({ error: 'Internal server error while deleting competition.' });
     }
 });
 

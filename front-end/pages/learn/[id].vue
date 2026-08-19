@@ -52,7 +52,21 @@ const { data: fetchedData, pending: isLoading } = await useAsyncData(`algo-${rou
         headers: { 'Authorization': `Bearer ${tokenCookie.value}` }
     })
 )
+const showQuizModal = ref(false);
+const quizEarnedPoints = ref(0);
 
+const handleUnlockPractice = () => {
+    // حساب النقاط بناءً على الإجابات الصحيحة
+    quizEarnedPoints.value = correctQuizCount * 10;
+    // إظهار النافذة المنبثقة
+    showQuizModal.value = true;
+};
+
+const proceedToPractice = () => {
+    // إخفاء النافذة والانتقال للقسم التالي
+    showQuizModal.value = false;
+    nextStep(2);
+};
 // مراقبة الرابط للانتقال بين الخوارزميات بدون Reload
 watch(() => route.params.id, async (newId) => {
     if (newId) {
@@ -329,6 +343,23 @@ body { overflow-y: auto; }
 .toast-notification { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(15, 23, 42, 0.95); border: 1px solid #eab308; box-shadow: 0 10px 30px rgba(234, 179, 8, 0.2); border-radius: 12px; padding: 15px 25px; display: flex; align-items: center; gap: 15px; z-index: 9999; backdrop-filter: blur(10px); }
 .slide-down-enter-active, .slide-down-leave-active { transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
 .slide-down-enter-from, .slide-down-leave-to { opacity: 0; top: -50px; }
+
+/* ================= حركات الظهور والاختفاء (Vue Transition) ================= */
+.slide-down-enter-active,
+.slide-down-leave-active {
+    transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55); /* تأثير ارتداد خفيف */
+}
+
+.slide-down-enter-from,
+.slide-down-leave-to {
+    opacity: 0;
+    top: -50px;
+}
+/* تنسيق لجعل خلفية النافذة واضحة وبدون ضبابية */
+.clear-overlay {
+    background: rgba(0, 0, 0, 0.3) !important; 
+    backdrop-filter: none !important; 
+}
 </style>
 
 <template>
@@ -391,8 +422,8 @@ body { overflow-y: auto; }
                         <span id="quiz-progress-text" style="margin-right: 15px; color: var(--text-muted);">
                             {{ Object.values(quizAnswers).filter(a => a === true).length }}/{{ algoData.quiz?.length || 0 }} Correct
                         </span>
-                        <button class="btn-primary" id="btn-to-practice" :disabled="!isQuizPassed" @click="nextStep(2)">
-                            {{ isQuizPassed ? `Unlock Practice (+${Object.values(quizAnswers).filter(a => a === true).length * 10} pts)` : 'Complete Quiz to Continue' }}
+                        <button class="btn-primary" id="btn-to-practice" :disabled="!isQuizPassed" @click="handleUnlockPractice()">
+                            Next->
                         </button>
                     </div>
                 </div>
@@ -478,4 +509,21 @@ body { overflow-y: auto; }
             </div>
         </div>
     </div>
+        <!-- نافذة عرض نقاط الكويز -->
+<div class="modal-overlay clear-overlay" :style="{ display: showQuizModal ? 'flex' : 'none' }">
+    <div class="modal-content" style="max-width: 400px; padding: 30px;">
+        <i class="fas fa-check-circle fa-3x" style="color: #22c55e; margin-bottom: 15px; filter: drop-shadow(0 0 10px rgba(34,197,94,0.4));"></i>
+        <div class="modal-header gradient-text" style="font-size: 1.5rem;">Great effort! </div>
+        <p>Here are the points you earned.</p>
+        
+        <div class="score-circle" style="width: 80px; height: 80px; font-size: 1.5rem; margin: 15px auto;">
+            +{{ quizEarnedPoints }}
+        </div>
+        <p style="color: var(--text-muted); margin-bottom: 25px;">Points Earned</p>
+
+        <button class="btn-primary" style="width: 100%; border: none; cursor: pointer;" @click="proceedToPractice()">
+            Keep Going!
+        </button>
+    </div>
+</div>
 </template>

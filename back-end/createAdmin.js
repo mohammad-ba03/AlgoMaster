@@ -11,14 +11,12 @@ async function createSuperAdmin() {
     try {
         console.log('⏳ جاري التحقق من قاعدة البيانات...');
 
-        // 1. التأكد من أن الإيميل غير موجود مسبقاً
         const userExists = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
         if (userExists.rows.length > 0) {
             console.log(`❌ فشل: حساب المدير (${email}) موجود بالفعل.`);
             process.exit(0);
         }
 
-        // 2. تشفير كلمة المرور
         const salt = await bcrypt.genSalt(10);
         const passwordHash = await bcrypt.hash(password, salt);
         
@@ -34,7 +32,6 @@ async function createSuperAdmin() {
     } catch (err) {
         console.error('❌ حدث خطأ:', err.message);
     } finally {
-        // إغلاق الاتصال بقاعدة البيانات لكي يتوقف السكربت
         pool.end();
     }
 }

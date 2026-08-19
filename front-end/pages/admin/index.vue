@@ -11,7 +11,6 @@
                 <a href="#" :class="{ active: currentTab === 'algorithms' }" @click.prevent="currentTab = 'algorithms'"><i class="fas fa-cogs"></i> Algorithm Builder</a>
                 <a href="#" :class="{ active: currentTab === 'students' }" @click.prevent="currentTab = 'students'"><i class="fas fa-users"></i> Reports & Analytics</a>
                 <a href="#" :class="{ active: currentTab === 'competitions' }" @click.prevent="currentTab = 'competitions'"><i class="fas fa-trophy"></i> Competitions</a>
-                <a href="#" :class="{ active: currentTab === 'submissions' }" @click.prevent="currentTab = 'submissions'"><i class="fas fa-code-branch"></i> Student Submissions</a>
             </nav>
 
             <div class="sidebar-footer">
@@ -563,144 +562,207 @@
                 </section>
 
 <section v-if="currentTab === 'competitions'" class="tab-section animation-fade">
-    <div class="section-header flex-between">
+    <!-- الترويسة وأزرار التبديل -->
+    <div class="section-header flex-between mb-4">
         <div>
             <h2><i class="fas fa-trophy text-warning"></i> Arena Management</h2>
-            <p class="text-muted">Create high-stakes coding tournaments and theory quizzes.</p>
+            <p class="text-muted">Create tournaments, manage quizzes, and review student submissions.</p>
         </div>
-    </div>
-
-    <form @submit.prevent="saveCompetition" class="admin-form">
-        <div class="form-section">
-            <h3 class="mb-3"><i class="fas fa-info-circle text-primary"></i> Competition Settings</h3>
-            <div class="form-grid">
-    <div class="input-group">
-        <label>Competition Title</label>
-        <input v-model="compForm.title" type="text" placeholder="e.g. Winter Algorithm Cup" required>
-    </div>
-    <div class="input-group">
-        <label>Status</label>
-        <select v-model="compForm.status" required>
-            <option value="upcoming">Upcoming</option>
-            <option value="live">Live Now</option>
-            <option value="ongoing">Ongoing</option>
-        </select>
-    </div>
-    <div class="input-group">
-        <label>Time Limit (Minutes)</label>
-        <input v-model="compForm.time_limit" type="number" min="1" required placeholder="e.g. 60">
-    </div>
-    <div class="input-group">
-        <label>Max Reward Points</label>
-        <input v-model="compForm.max_points" type="number" min="10" step="10" required placeholder="e.g. 500">
-    </div>
-    <div class="input-group">
-        <label>Required Level</label>
-        <input v-model="compForm.level_required" type="number" min="1" max="5">
-    </div>
-    <div class="input-group">
-        <label>Icon (FA Class)</label>
-        <input v-model="compForm.icon" type="text" placeholder="fa-fire">
-    </div>
-    <div class="input-group">
-        <label>Start Date</label>
-        <input v-model="compForm.start_date" type="datetime-local" required>
-    </div>
-    <div class="input-group">
-        <label>End Date (Optional)</label>
-        <input v-model="compForm.end_date" type="datetime-local">
-    </div>
+        
+        <!-- أزرار التبديل بين إضافة مسابقة ومراجعة الحلول -->
+        <div class="toggle-buttons" style="display: flex; gap: 10px;">
+    <!-- الزر الجديد: إدارة المسابقات -->
+    <button 
+        @click="competitionSubTab = 'manage'" 
+        :class="['btn', competitionSubTab === 'manage' ? 'btn-primary2' : 'btn-secondary']">
+        <i class="fas fa-list"></i> Manage Competitions
+    </button>
+    <button 
+        @click="competitionSubTab = 'add'" 
+        :class="['btn', competitionSubTab === 'add' ? 'btn-primary2' : 'btn-secondary']">
+        <i class="fas fa-plus"></i> Add Competition
+    </button>
+    <button 
+        @click="competitionSubTab = 'review'" 
+        :class="['btn', competitionSubTab === 'review' ? 'btn-primary2' : 'btn-secondary']">
+        <i class="fas fa-code-branch"></i> Review Submissions
+    </button>
 </div>
-            <div class="input-group mt-3 full-width">
-                <label>Description & Rules</label>
-                <textarea v-model="compForm.description" rows="3" placeholder="Describe the prize and rules..." required></textarea>
-            </div>
-        </div>
-
-        <div class="form-section mt-4">
-            <h3 class="mb-3 text-warning"><i class="fas fa-list-ol"></i> Part 1: Theory Questions (MCQs)</h3>
-            <div v-for="(q, qIdx) in compForm.questions" :key="'q-'+qIdx" class="quiz-card mb-3">
-                <div class="blank-header">
-                    <h4>Question {{ qIdx + 1 }}</h4>
-                    <button type="button" @click="removeCompMCQ(qIdx)" class="btn-icon text-danger"><i class="fas fa-trash"></i></button>
-                </div>
-                <input v-model="q.question" type="text" placeholder="Enter question text..." class="quiz-question-input mb-3">
-                
-                <div class="options-container">
-                    <div v-for="(opt, oIdx) in q.options" :key="'o-'+oIdx" class="option-row" :class="{'is-correct': opt.isCorrect}">
-                        <input type="radio" :name="'comp_correct_'+qIdx" :checked="opt.isCorrect" @change="setCompCorrectOption(qIdx, oIdx)">
-                        <input v-model="opt.text" type="text" placeholder="Option text..." class="quiz-option-input">
-                        <button type="button" @click="removeCompOption(qIdx, oIdx)" class="btn-icon text-danger"><i class="fas fa-times"></i></button>
-                    </div>
-                </div>
-                <button type="button" @click="addCompOption(qIdx)" class="btn-text text-primary mt-2"><i class="fas fa-plus-circle"></i> Add Option</button>
-            </div>
-            <button type="button" @click="addCompMCQ" class="btn-secondary w-100 mt-2"><i class="fas fa-plus"></i> Add Theory Question</button>
-        </div>
-
-        <div class="form-section mt-4">
-            <h3 class="mb-3 text-success"><i class="fas fa-code"></i> Part 2: Coding Challenges</h3>
-            <div v-for="(p, pIdx) in compForm.coding_problems" :key="'p-'+pIdx" class="quiz-card mb-3" style="border-left: 4px solid #22c55e;">
-                <div class="blank-header">
-                    <h4>Coding Problem {{ pIdx + 1 }}</h4>
-                    <button type="button" @click="removeCompCodingProblem(pIdx)" class="btn-icon text-danger"><i class="fas fa-trash"></i></button>
-                </div>
-                <div class="input-group mb-3">
-                    <label>Problem Prompt (What should they solve?)</label>
-                    <textarea v-model="p.prompt" rows="3" placeholder="e.g. Write a function to reverse a linked list..."></textarea>
-                </div>
-                <div class="input-group">
-                    <label>Starter Code (Template)</label>
-                    <textarea v-model="p.starter_code" rows="5" style="font-family: monospace; background: #000; color: #22c55e;" placeholder="function solve() { \n\n }"></textarea>
-                </div>
-            </div>
-            <button type="button" @click="addCompCodingProblem" class="btn-secondary w-100 mt-2" style="border-color: #22c55e; color: #22c55e;"><i class="fas fa-plus"></i> Add Coding Challenge</button>
-        </div>
-
-        <div class="form-actions mt-4 text-right">
-            <button type="submit" class="btn-primary btn-lg" :disabled="isSavingComp">
-                <i class="fas fa-rocket"></i> {{ isSavingComp ? 'Deploying Arena...' : 'Deploy Competition' }}
-            </button>
-        </div>
-    </form>
-</section>
-
-                <section v-if="currentTab === 'submissions'" class="tab-section animation-fade">
-    <div class="section-header">
-        <h2><i class="fas fa-code-branch text-primary"></i> Review & Grade Submissions</h2>
-        <p class="text-muted">Review submitted code by students, evaluate them, and provide feedback.</p>
     </div>
 
-    <div class="table-container custom-scrollbar">
+<!-- قسم عرض وإدارة المسابقات الحالية -->
+<div v-if="competitionSubTab === 'manage'" class="animation-fade">
+    <div class="table-container custom-scrollbar mt-4">
         <table class="admin-table advanced-table">
             <thead>
                 <tr>
-                    <th>Student Name</th>
-                    <th>Algorithm</th>
-                    <th>Submission Time</th>
+                    <th>Competition Title</th>
                     <th>Status</th>
+                    <th>Max Points</th>
+                    <th>Start Date</th>
                     <th>Action</th>
                 </tr>
             </thead>
             <tbody>
-                <tr v-for="sub in studentSubmissions" :key="sub.id">
-                    <td><strong>{{ sub.student_name }}</strong></td>
-                    <td>{{ sub.algo_id }}</td>
-                    <td>{{ formatDate(sub.submitted_at) }}</td>
+                <tr v-for="comp in competitionsList" :key="comp.id">
                     <td>
-                        <span class="badge" :class="sub.status === 'pending' ? 'badge-warning' : (sub.status === 'approved' ? 'badge-success' : 'badge-danger')">
-                            {{ sub.status }}
-                        </span>
+                        <strong>{{ comp.title }}</strong>
+                        <div class="text-muted" style="font-size: 0.8rem;">Level: {{ comp.level_required }} | <i class="fas fa-clock"></i> {{ comp.time_limit }} min</div>
                     </td>
                     <td>
-    <button class="btn-primary2" @click="openReviewModal(sub)">Review</button>
-</td>
+                        <span class="badge" :class="comp.status === 'live' || comp.status === 'ongoing' ? 'badge-success' : 'badge-warning'">
+                            {{ comp.status.toUpperCase() }}
+                        </span>
+                    </td>
+                    <td class="text-warning" style="font-weight: bold;">{{ comp.max_points }} XP</td>
+                    <td>{{ formatDate(comp.start_date) }}</td>
+                    <td>
+                        <button class="btn-action text-danger" @click="deleteCompetition(comp.id)" title="Delete Competition">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </td>
                 </tr>
-                <tr v-if="!studentSubmissions || studentSubmissions.length === 0">
-                    <td colspan="5" class="text-center text-muted">No submissions pending review.</td>
+                <tr v-if="!competitionsList || competitionsList.length === 0">
+                    <td colspan="5" class="text-center text-muted">
+                        <i class="fas fa-box-open fa-2x mb-2"></i>
+                        <p>No competitions found. Start by adding a new one!</p>
+                    </td>
                 </tr>
             </tbody>
         </table>
+    </div>
+</div>
+
+    <!-- 1. قسم إضافة مسابقة -->
+    <div v-if="competitionSubTab === 'add'" class="animation-fade">
+        <form @submit.prevent="saveCompetition" class="admin-form">
+            <div class="form-section">
+                <h3 class="mb-3"><i class="fas fa-info-circle text-primary"></i> Competition Settings</h3>
+                <div class="form-grid">
+                    <div class="input-group">
+                        <label>Competition Title</label>
+                        <input v-model="compForm.title" type="text" placeholder="e.g. Winter Algorithm Cup" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Status</label>
+                        <select v-model="compForm.status" required>
+                            <option value="upcoming">Upcoming</option>
+                            <option value="live">Live Now</option>
+                            <option value="ongoing">Ongoing</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label>Time Limit (Minutes)</label>
+                        <input v-model="compForm.time_limit" type="number" min="1" required placeholder="e.g. 60">
+                    </div>
+                    <div class="input-group">
+                        <label>Max Reward Points</label>
+                        <input v-model="compForm.max_points" type="number" min="10" step="10" required placeholder="e.g. 500">
+                    </div>
+                    <div class="input-group">
+                        <label>Required Level</label>
+                        <input v-model="compForm.level_required" type="number" min="1" max="5">
+                    </div>
+                    <div class="input-group">
+                        <label>Icon (FA Class)</label>
+                        <input v-model="compForm.icon" type="text" placeholder="fa-fire">
+                    </div>
+                    <div class="input-group">
+                        <label>Start Date</label>
+                        <input v-model="compForm.start_date" type="datetime-local" required>
+                    </div>
+                    <div class="input-group">
+                        <label>End Date (Optional)</label>
+                        <input v-model="compForm.end_date" type="datetime-local">
+                    </div>
+                </div>
+                <div class="input-group mt-3 full-width">
+                    <label>Description & Rules</label>
+                    <textarea v-model="compForm.description" rows="3" placeholder="Describe the prize and rules..." required></textarea>
+                </div>
+            </div>
+
+            <div class="form-section mt-4">
+                <h3 class="mb-3 text-warning"><i class="fas fa-list-ol"></i> Part 1: Theory Questions (MCQs)</h3>
+                <div v-for="(q, qIdx) in compForm.questions" :key="'q-'+qIdx" class="quiz-card mb-3">
+                    <div class="blank-header">
+                        <h4>Question {{ qIdx + 1 }}</h4>
+                        <button type="button" @click="removeCompMCQ(qIdx)" class="btn-icon text-danger"><i class="fas fa-trash"></i></button>
+                    </div>
+                    <input v-model="q.question" type="text" placeholder="Enter question text..." class="quiz-question-input mb-3">
+                    
+                    <div class="options-container">
+                        <div v-for="(opt, oIdx) in q.options" :key="'o-'+oIdx" class="option-row" :class="{'is-correct': opt.isCorrect}">
+                            <input type="radio" :name="'comp_correct_'+qIdx" :checked="opt.isCorrect" @change="setCompCorrectOption(qIdx, oIdx)">
+                            <input v-model="opt.text" type="text" placeholder="Option text..." class="quiz-option-input">
+                            <button type="button" @click="removeCompOption(qIdx, oIdx)" class="btn-icon text-danger"><i class="fas fa-times"></i></button>
+                        </div>
+                    </div>
+                    <button type="button" @click="addCompOption(qIdx)" class="btn-text text-primary mt-2"><i class="fas fa-plus-circle"></i> Add Option</button>
+                </div>
+                <button type="button" @click="addCompMCQ" class="btn-secondary w-100 mt-2"><i class="fas fa-plus"></i> Add Theory Question</button>
+            </div>
+
+            <div class="form-section mt-4">
+                <h3 class="mb-3 text-success"><i class="fas fa-code"></i> Part 2: Coding Challenges</h3>
+                <div v-for="(p, pIdx) in compForm.coding_problems" :key="'p-'+pIdx" class="quiz-card mb-3" style="border-left: 4px solid #22c55e;">
+                    <div class="blank-header">
+                        <h4>Coding Problem {{ pIdx + 1 }}</h4>
+                        <button type="button" @click="removeCompCodingProblem(pIdx)" class="btn-icon text-danger"><i class="fas fa-trash"></i></button>
+                    </div>
+                    <div class="input-group mb-3">
+                        <label>Problem Prompt (What should they solve?)</label>
+                        <textarea v-model="p.prompt" rows="3" placeholder="e.g. Write a function to reverse a linked list..."></textarea>
+                    </div>
+                    <div class="input-group">
+                        <label>Starter Code (Template)</label>
+                        <textarea v-model="p.starter_code" rows="5" style="font-family: monospace; background: #000; color: #22c55e;" placeholder="function solve() { \n\n }"></textarea>
+                    </div>
+                </div>
+                <button type="button" @click="addCompCodingProblem" class="btn-secondary w-100 mt-2" style="border-color: #22c55e; color: #22c55e;"><i class="fas fa-plus"></i> Add Coding Challenge</button>
+            </div>
+
+            <div class="form-actions mt-4 text-right">
+                <button type="submit" class="btn-primary btn-lg" :disabled="isSavingComp">
+                    <i class="fas fa-rocket"></i> {{ isSavingComp ? 'Deploying Arena...' : 'Deploy Competition' }}
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- 2. قسم مراجعة الحلول -->
+    <div v-if="competitionSubTab === 'review'" class="animation-fade">
+        <div class="table-container custom-scrollbar mt-4">
+            <table class="admin-table advanced-table">
+                <thead>
+                    <tr>
+                        <th>Student Name</th>
+                        <th>Algorithm</th>
+                        <th>Submission Time</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="sub in studentSubmissions" :key="sub.id">
+                        <td><strong>{{ sub.student_name }}</strong></td>
+                        <td>{{ sub.algo_id }}</td>
+                        <td>{{ formatDate(sub.submitted_at) }}</td>
+                        <td>
+                            <span class="badge" :class="sub.status === 'pending' ? 'badge-warning' : (sub.status === 'approved' ? 'badge-success' : 'badge-danger')">
+                                {{ sub.status }}
+                            </span>
+                        </td>
+                        <td>
+                            <button class="btn-primary2" @click="openReviewModal(sub)">Review</button>
+                        </td>
+                    </tr>
+                    <tr v-if="!studentSubmissions || studentSubmissions.length === 0">
+                        <td colspan="5" class="text-center text-muted">No submissions pending review.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
 </section>
 <div v-if="reviewingSubmission" class="modal-overlay" @click.self="closeReviewModal">
@@ -922,6 +984,7 @@ onMounted(async () => {
     await fetchAlgorithms();
     await fetchReportData();
     await fetchSubmissions();
+    await fetchCompetitions();
 })
 
 // ================= 1. DASHBOARD ANALYTICS =================
@@ -1183,6 +1246,8 @@ const deleteUser = async (userId) => {
 };
 
 // ================= 4. COMPETITIONS =================
+const competitionSubTab = ref('manage'); // جعل العرض الافتراضي هو قائمة المسابقات
+const competitionsList = ref([]); // مصفوفة لتخزين المسابقات الحالية
 const compForm = ref({ 
     title: '', 
     description: '', 
@@ -1198,6 +1263,42 @@ const compForm = ref({
     coding_problems: [] 
 });
 const isSavingComp = ref(false);
+
+// --- دالة جلب المسابقات من قاعدة البيانات ---
+const fetchCompetitions = async () => {
+    try {
+        const res = await $fetch('http://localhost:5000/api/admin/competitions', {
+            headers: { 'Authorization': `Bearer ${tokenCookie.value}` }
+        });
+        competitionsList.value = res;
+    } catch (error) {
+        console.error('Error fetching competitions:', error);
+    }
+};
+// --- دالة حذف مسابقة ---
+const deleteCompetition = async (compId) => {
+    if (!confirm('Are you sure you want to delete this competition? All related data (and potentially student submissions) will be removed.')) return;
+    
+    try {
+        await $fetch(`http://localhost:5000/api/admin/competitions/${compId}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${tokenCookie.value}` }
+        });
+        
+        // إزالة المسابقة من القائمة محلياً لتحديث الواجهة فوراً
+        competitionsList.value = competitionsList.value.filter(c => c.id !== compId);
+        
+        // تحديث إحصائيات لوحة التحكم
+        fetchReportData();
+        
+        alert('Competition deleted successfully!');
+    } catch (error) {
+        alert(error?.data?.error || 'Failed to delete competition.');
+        console.error(error);
+    }
+};
+
+
 
 // دوال إدارة الأسئلة الاختيارية للمسابقات
 const addCompMCQ = () => {
@@ -1256,6 +1357,9 @@ const saveCompetition = async () => {
         // إعادة تهيئة النموذج بعد النجاح
         compForm.value = { title: '', description: '', status: 'upcoming', icon: 'fa-trophy', color: '#3b82f6', level_required: 1, start_date: '', end_date: '', questions: [], coding_problems: [] };
         
+        await fetchCompetitions(); // تحديث القائمة
+        competitionSubTab.value = 'manage'; // العودة لصفحة العرض
+        await fetchReportData(); // تحديث الإحصائيات
         try { await fetchReportData(); } catch (e) { console.warn(e); }
     } catch (error) { 
         console.error('Error deploying competition:', error);
@@ -1264,6 +1368,8 @@ const saveCompetition = async () => {
 };
 
 const handleLogout = () => { tokenCookie.value = null; navigateTo('/admin/login'); }
+
+
 
 // ================= SUBMISSIONS STATE & FETCH =================
 const studentSubmissions = ref([]);

@@ -9,12 +9,11 @@ const successMessage = ref('')
 const isLoading = ref(false)
 
 const handleRegister = async () => {
-  errorMessage.value = '' // تفريغ رسالة الخطأ السابقة
-  successMessage.value = '' // تفريغ رسالة النجاح السابقة
+  errorMessage.value = ''
+  successMessage.value = '' 
   isLoading.value = true
 
   try {
-    // إرسال الطلب إلى الباك إند (Express)
     const response = await $fetch('http://localhost:5000/api/auth/register', {
       method: 'POST',
       body: {
@@ -24,34 +23,29 @@ const handleRegister = async () => {
       }
     });
 
-    // إذا تم النجاح
     successMessage.value = response.message || 'تم إنشاء الحساب بنجاح! سيتم تحويلك لصفحة تسجيل الدخول...';
     
-    // تفريغ المدخلات
     fullName.value = ''
     email.value = ''
     password.value = ''
 
-    // تحويل المستخدم لصفحة تسجيل الدخول بعد 2 ثانية
     setTimeout(() => {
       navigateTo('/login');
     }, 2000);
 
   } catch (error) {
-    // التعامل مع الأخطاء القادمة من الباك إند
     if (error.data && error.data.error) {
-      errorMessage.value = error.data.error; // مثال: "Email already exists"
+      errorMessage.value = error.data.error; 
     } else {
       errorMessage.value = 'حدث خطأ غير متوقع أثناء إنشاء الحساب. حاول مرة أخرى.';
     }
   } finally {
-    isLoading.value = false; // إعادة تفعيل زر الإرسال
+    isLoading.value = false;
   }
 }
 </script>
 <style>
 
-/* تعديل خاص لجسم الصفحة لإزالة التمرير إذا لم يكن ضرورياً */
 .auth-body {
     min-height: 100vh;
     display: flex;

@@ -5,6 +5,15 @@
         <div class="glow-line line-3"></div>
     </div>
 
+    <!-- Toast Notification Container -->
+    <Transition name="toast">
+        <div v-if="toast.show" :class="['toast-notification', `toast-${toast.type}`]">
+            <i :class="toastIcon"></i>
+            <span>{{ toast.message }}</span>
+            <button @click="toast.show = false" class="toast-close">&times;</button>
+        </div>
+    </Transition>
+
     <nav class="navbar">
         <div class="container">
             <nuxt-link :to="{name: 'index'}" class="logo">Algo<span>Master</span></nuxt-link>
@@ -18,8 +27,6 @@
     <div v-if="isLoading" class="loading-screen">
         <i class="fas fa-spinner fa-spin fa-3x gradient-text"></i>
     </div>
-
-            
 
     <main v-else class="arena-page">
         <div class="container">
@@ -57,7 +64,7 @@
                             <i class="fas fa-lock"></i> Requires Level {{ comp.level_required }}
                         </button>
                         <button v-else-if="enrolledMap[String(comp.id)]" @click="openCompetition(comp)" class="btn-comp started">
-                            <i class="fas fa-play"></i> Started
+                            <i class="fas fa-play"></i> Entered
                         </button>
                         <button v-else @click="openCompetition(comp)" class="btn-comp primary">
                             Enter Arena <i class="fas fa-arrow-right"></i>
@@ -72,35 +79,35 @@
         <div class="arena-modal-content animation-pop">
             
             <aside class="arena-sidebar">
-    <div class="arena-nav-header" style="justify-content: space-between;">
-        <span><i class="fas fa-shield-alt"></i> Session</span>
-        <div class="arena-timer" :class="{'critical-time': timeLeft <= 300}">
-            <i class="fas fa-stopwatch"></i> {{ formattedTime }}
-        </div>
-    </div>
-    <div class="arena-nav-items custom-scrollbar">
-        <button v-for="(q, index) in selectedCompetition.questions" :key="'nav-q-'+index" 
-            :class="{ active: currentTaskType === 'theory' && currentTaskIdx === index }"
-            @click="setTask('theory', index)">
-            <i class="fas fa-question-circle"></i> Theory Q{{ index + 1 }}
-            <i v-if="studentAnswers[index]" class="fas fa-check-circle text-success" style="margin-left: auto; font-size: 0.8rem;"></i>
-        </button>
-        <button v-for="(p, index) in selectedCompetition.coding_problems" :key="'nav-p-'+index"
-            :class="{ active: currentTaskType === 'coding' && currentTaskIdx === index }"
-            @click="setTask('coding', index)">
-            <i class="fas fa-code"></i> Coding P{{ index + 1 }}
-        </button>
-    </div>
-    <div class="arena-sidebar-footer">
-        <div class="potential-points mb-2 text-center text-warning" style="font-size: 0.85rem; font-weight: bold;">
-            Max Reward: {{ selectedCompetition.max_points || 0 }} XP
-        </div>
-        <button @click="submitSolution(false)" class="btn-submit-arena">
-            <i class="fas fa-paper-plane"></i> Final Submission
-        </button>
-        <button @click="closeCompetition" class="btn-exit-arena">Exit Arena</button>
-    </div>
-</aside>
+                <div class="arena-nav-header" style="justify-content: space-between;">
+                    <span><i class="fas fa-shield-alt"></i> Session</span>
+                    <div class="arena-timer" :class="{'critical-time': timeLeft <= 300}">
+                        <i class="fas fa-stopwatch"></i> {{ formattedTime }}
+                    </div>
+                </div>
+                <div class="arena-nav-items custom-scrollbar">
+                    <button v-for="(q, index) in selectedCompetition.questions" :key="'nav-q-'+index" 
+                        :class="{ active: currentTaskType === 'theory' && currentTaskIdx === index }"
+                        @click="setTask('theory', index)">
+                        <i class="fas fa-question-circle"></i> Theory Q{{ index + 1 }}
+                        <i v-if="studentAnswers[index]" class="fas fa-check-circle text-success" style="margin-left: auto; font-size: 0.8rem;"></i>
+                    </button>
+                    <button v-for="(p, index) in selectedCompetition.coding_problems" :key="'nav-p-'+index"
+                        :class="{ active: currentTaskType === 'coding' && currentTaskIdx === index }"
+                        @click="setTask('coding', index)">
+                        <i class="fas fa-code"></i> Coding P{{ index + 1 }}
+                    </button>
+                </div>
+                <div class="arena-sidebar-footer">
+                    <div class="potential-points mb-2 text-center text-warning" style="font-size: 0.85rem; font-weight: bold;">
+                        Max Reward: {{ selectedCompetition.max_points || 0 }} XP
+                    </div>
+                    <button @click="submitSolution(false)" class="btn-submit-arena">
+                        <i class="fas fa-paper-plane"></i> Final Submission
+                    </button>
+                    <button @click="closeCompetition" class="btn-exit-arena">Exit Arena</button>
+                </div>
+            </aside>
 
             <main class="arena-workspace">
                 <header class="workspace-header">
@@ -132,16 +139,16 @@
                             <p>{{ activeProblem.prompt }}</p>
                         </div>
                         <div class="editor-box">
-    <client-only>
-        <Codemirror
-            v-model="studentCodes[currentTaskIdx]"
-            :style="{ height: '100%', minHeight: '400px' }"
-            :autofocus="true"
-            :indent-with-tab="true"
-            :extensions="[javascript()]"
-        />
-    </client-only>
-</div>
+                            <client-only>
+                                <Codemirror
+                                    v-model="studentCodes[currentTaskIdx]"
+                                    :style="{ height: '100%', minHeight: '400px' }"
+                                    :autofocus="true"
+                                    :indent-with-tab="true"
+                                    :extensions="[javascript()]"
+                                />
+                            </client-only>
+                        </div>
                     </div>
 
                     <div v-if="!selectedCompetition.questions?.length && !selectedCompetition.coding_problems?.length" class="placeholder-arena text-center">
@@ -164,6 +171,7 @@ import { javascript } from '@codemirror/lang-javascript'
 import '~/assets/learn.css'
 import { initTheme } from '~/assets/script'
 import { Codemirror } from 'vue-codemirror'
+
 const token = useCookie('auth_token')
 const isLoading = ref(true)
 const competitions = ref([])
@@ -171,6 +179,27 @@ const userLevel = ref(1)
 const enrolledMap = ref({})
 const timeLeft = ref(0)
 const timerInterval = ref(null)
+
+// Toast Notification State & Functionality
+const toast = ref({ show: false, message: '', type: 'info' })
+let toastTimeout = null
+
+const showToast = (message, type = 'info') => {
+    toast.value = { show: true, message, type }
+    if (toastTimeout) clearTimeout(toastTimeout)
+    toastTimeout = setTimeout(() => {
+        toast.value.show = false
+    }, 4000)
+}
+
+const toastIcon = computed(() => {
+    switch (toast.value.type) {
+        case 'success': return 'fas fa-check-circle'
+        case 'error': return 'fas fa-exclamation-circle'
+        case 'warning': return 'fas fa-exclamation-triangle'
+        default: return 'fas fa-info-circle'
+    }
+})
 
 const formattedTime = computed(() => {
     const m = Math.floor(timeLeft.value / 60)
@@ -194,7 +223,6 @@ onMounted(async () => {
             const userRes = await $fetch('http://localhost:5000/api/user/profile', { headers: { 'Authorization': `Bearer ${token.value}` } }).catch(() => null)
             if (userRes) userLevel.value = userRes.current_level || 1
         }
-        // load user's submission/enrollment state after competitions are loaded
         await loadUserSubmissions()
     } finally { isLoading.value = false }
 })
@@ -208,7 +236,7 @@ const openCompetition = async (comp) => {
         });
         enrolledMap.value = { ...enrolledMap.value, [String(comp.id)]: 'started' };
     } catch (error) {
-        alert(error?.data?.error || 'حدث خطأ أثناء محاولة الدخول للمسابقة.');
+        showToast(error?.data?.error || 'حدث خطأ أثناء محاولة الدخول للمسابقة.', 'error');
         return; 
     }
 
@@ -220,7 +248,6 @@ const openCompetition = async (comp) => {
     currentTaskIdx.value = 0;
     document.body.style.overflow = 'hidden';
 
-    // --- تشغيل المؤقت بناءً على وقت المسابقة المعين من الآدمن (أو 60 دقيقة افتراضياً) ---
     timeLeft.value = (comp.time_limit || 60) * 60;
     clearInterval(timerInterval.value);
     timerInterval.value = setInterval(() => {
@@ -228,8 +255,8 @@ const openCompetition = async (comp) => {
             timeLeft.value--;
         } else {
             clearInterval(timerInterval.value);
-            alert('Time is up! Your answers are being automatically submitted.');
-            submitSolution(true); // إرسال تلقائي
+            showToast('Time is up! Your answers are being automatically submitted.', 'warning');
+            submitSolution(true);
         }
     }, 1000);
 }
@@ -248,8 +275,6 @@ const loadUserSubmissions = async () => {
     } catch (e) { console.warn('Could not load user submissions', e) }
 }
 
-// load submissions after initial data
-onMounted(() => { loadUserSubmissions() })
 const setTask = (type, idx) => {
     currentTaskType.value = type
     currentTaskIdx.value = idx
@@ -262,9 +287,8 @@ const currentTaskTitle = computed(() => currentTaskType.value === 'theory' ? 'Co
 const submitSolution = async (isAuto = false) => {
     if (!isAuto && !confirm('Are you sure you want to finalize your submission? You cannot change your answers after this.')) return
     
-    clearInterval(timerInterval.value); // إيقاف العداد عند التسليم
+    clearInterval(timerInterval.value);
 
-    // حساب الوقت المستغرق الفعلي (بالثواني)
     const totalTimeSeconds = (selectedCompetition.value.time_limit || 60) * 60;
     const timeSpent = totalTimeSeconds - timeLeft.value;
 
@@ -279,13 +303,13 @@ const submitSolution = async (isAuto = false) => {
             body: { 
                 competitionId: selectedCompetition.value.id,
                 submittedCode: payload,
-                executionTime: timeSpent // <--- إرسال الوقت المستغرق للسيرفر
+                executionTime: timeSpent
             }
         })
-        alert(isAuto ? 'Solutions auto-submitted successfully.' : 'Your solutions have been sent to the Grand Masters for review!')
+        showToast(isAuto ? 'Solutions auto-submitted successfully.' : 'Your solutions have been sent to the Grand Masters for review!', 'success');
         closeCompetition()
     } catch (err) { 
-        alert('Submission error. Please check your connection.') 
+        showToast('Submission error. Please check your connection.', 'error');
         console.error(err);
     }
 }
@@ -293,13 +317,54 @@ const submitSolution = async (isAuto = false) => {
 const closeCompetition = () => {
     selectedCompetition.value = null
     document.body.style.overflow = 'auto'
-    clearInterval(timerInterval.value); // إيقاف العداد
+    clearInterval(timerInterval.value);
 }
 
 const getStatusClass = (status) => status === 'live' ? 'comp-status live' : status === 'ongoing' ? 'comp-status ongoing' : 'comp-status upcoming'
 </script>
 
 <style scoped>
+/* =========================================
+   Toast Notification Styles
+   ========================================= */
+.toast-notification {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    padding: 14px 20px;
+    border-radius: 12px;
+    background: #1e293b;
+    color: #f8fafc;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    border: 1px solid #334155;
+    z-index: 10000;
+    font-size: 0.95rem;
+    backdrop-filter: blur(8px);
+}
+.toast-success { border-color: #22c55e; color: #4ade80; }
+.toast-error { border-color: #ef4444; color: #f87171; }
+.toast-warning { border-color: #f59e0b; color: #fbbf24; }
+.toast-info { border-color: #3b82f6; color: #60a5fa; }
+
+.toast-close {
+    background: none;
+    border: none;
+    color: currentColor;
+    font-size: 1.2rem;
+    cursor: pointer;
+    margin-left: 8px;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+.toast-close:hover { opacity: 1; }
+
+.toast-enter-active, .toast-leave-active { transition: all 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28); }
+.toast-enter-from { opacity: 0; transform: translateY(20px) scale(0.95); }
+.toast-leave-to { opacity: 0; transform: translateY(-20px) scale(0.95); }
+
 /* =========================================
    1. Base & Layout Styles (Original)
    ========================================= */
@@ -353,7 +418,6 @@ const getStatusClass = (status) => status === 'live' ? 'comp-status live' : stat
 .btn-comp { width: 100%; padding: 14px; border-radius: 8px; font-weight: bold; text-align: center; cursor: pointer; text-decoration: none; display: flex; justify-content: center; align-items: center; gap: 8px; transition: 0.3s; font-size: 1rem;}
 .btn-comp.primary { background: linear-gradient(135deg, #ef4444 0%, #f97316 100%); color: white; border: none; }
 .btn-comp.primary:hover { box-shadow: 0 5px 20px rgba(239, 68, 68, 0.4); transform: scale(1.02);}
-/* Started button style (green) */
 .btn-comp.started { background: linear-gradient(135deg, #10b981 0%, #22c55e 100%); color: white; border: none; }
 .btn-comp.started:hover { box-shadow: 0 5px 20px rgba(16,185,129,0.25); transform: scale(1.02);}
 .btn-comp.secondary { background: rgba(255,255,255,0.05); color: var(--text-muted); border: 1px solid var(--border-light); cursor: not-allowed; }
@@ -368,7 +432,6 @@ const getStatusClass = (status) => status === 'live' ? 'comp-status live' : stat
 .mb-3 { margin-bottom: 15px; }
 .mb-4 { margin-bottom: 20px; }
 .mt-4 { margin-top: 25px; }
-
 
 /* =========================================
    2. Arena Session Modal Styles (New UI)

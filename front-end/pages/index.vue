@@ -1,11 +1,8 @@
 <script setup>   
 import { onMounted } from 'vue'
 import { initTheme } from '~/assets/script'
-
-// التحقق من حالة تسجيل الدخول عبر الكوكيز
 const token = useCookie('auth_token')
 
-// دالة تسجيل الخروج
 const handleLogout = () => {
   token.value = null 
   navigateTo('/') 

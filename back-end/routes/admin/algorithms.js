@@ -18,7 +18,6 @@ router.post('/', verifyToken, isAdmin, async (req, res) => {
     }
 });
 
-// ملاحظة: في ملفك الأصلي، هذا المسار لم يكن يحتوي على verifyToken أو isAdmin
 router.delete('/:algo_id', async (req, res) => {
     try {
         const deletedAlgo = await prisma.algorithm.delete({

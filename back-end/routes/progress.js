@@ -35,7 +35,7 @@ router.post('/update', verifyToken, async (req, res) => {
             const newPoints = user.total_points + parsedPointsEarned;
             let earnedHelpPoints = 0;
             
-            [100, 200, 500, 1000, 1900, 2200, 2250, 2300].forEach(m => {
+            [100, 200, 500, 1000, 1500, 2000, 2500, 3000].forEach(m => {
                 if (user.total_points < m && newPoints >= m) earnedHelpPoints++;
             });
 
